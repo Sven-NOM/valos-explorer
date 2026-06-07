@@ -1,0 +1,195 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Host+Grotesk:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* ── Colors ─────────────────────────────────────────────────── */
+  --color-surface-base:    #ffffff;
+  --color-surface-raised:  #fafafa;
+  --color-surface-overlay: #f4f4f4;
+  --color-border:          #000000;
+  --color-border-subtle:   #e0e0e0;
+
+  --color-brand:        #fc5f2b;
+  --color-brand-hover:  #e04e1e;
+  --color-brand-subtle: rgba(252, 95, 43, 0.09);
+
+  --color-text-primary:   #000000;
+  --color-text-secondary: #555555;
+  --color-text-muted:     #999999;
+
+  /* Risk category accents — vibrant, work on white */
+  --color-risk-fin: #d97706;
+  --color-risk-sls: #dc2626;
+  --color-risk-dow: #7c3aed;
+  --color-risk-kec: #0891b2;
+  --color-risk-hck: #ea580c;
+  --color-risk-gir: #059669;
+  --color-risk-sps: #db2777;
+  --color-risk-rer: #4f46e5;
+
+  /* Illumination (graph) */
+  --color-lit:     #fc5f2b;
+  --color-partial: rgba(252, 95, 43, 0.45);
+  --color-dim:     #e8e8e8;
+
+  /* ── Typography ──────────────────────────────────────────────── */
+  --font-family-sans: 'Host Grotesk', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  --font-family-mono: 'DM Mono', 'Courier New', monospace;
+
+  /* ── Spacing ─────────────────────────────────────────────────── */
+  --spacing: 0.25rem;
+
+  /* ── Radius ──────────────────────────────────────────────────── */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+
+  /* ── Shadows ─────────────────────────────────────────────────── */
+  --shadow-card:  none;
+  --shadow-panel: 4px 0 0 0 #000;
+}
+
+/* ── Dark mode tokens ────────────────────────────────────────────────
+   Applied when either:
+     a) the OS is set to dark (prefers-color-scheme) — auto default, OR
+     b) the user explicitly toggles via the sidebar button, which sets
+        data-theme="dark" on <html> and stores the preference.
+   The explicit data-theme attribute takes precedence over the media
+   query via specificity (html[data-theme] selector wins).              */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-surface-base:    #0e0e0f;
+    --color-surface-raised:  #161618;
+    --color-surface-overlay: #1e1e21;
+    --color-border:          #ffffff;
+    --color-border-subtle:   #2e2e33;
+    --color-brand:        #fc5f2b;
+    --color-brand-hover:  #ff7a4d;
+    --color-brand-subtle: rgba(252, 95, 43, 0.14);
+    --color-text-primary:   #f0f0f0;
+    --color-text-secondary: #a8a8b0;
+    --color-text-muted:     #60606a;
+    --color-risk-fin: #f59e0b;
+    --color-risk-sls: #ef4444;
+    --color-risk-dow: #8b5cf6;
+    --color-risk-kec: #06b6d4;
+    --color-risk-hck: #f97316;
+    --color-risk-gir: #10b981;
+    --color-risk-sps: #ec4899;
+    --color-risk-rer: #6366f1;
+    --color-lit:     #fc5f2b;
+    --color-partial: rgba(252, 95, 43, 0.45);
+    --color-dim:     #2a2a2e;
+    --shadow-panel: 4px 0 0 0 rgba(255,255,255,0.12);
+  }
+}
+
+/* Explicit dark — overrides OS light preference */
+html[data-theme="dark"] {
+  --color-surface-base:    #0e0e0f;
+  --color-surface-raised:  #161618;
+  --color-surface-overlay: #1e1e21;
+  --color-border:          #ffffff;
+  --color-border-subtle:   #2e2e33;
+  --color-brand:        #fc5f2b;
+  --color-brand-hover:  #ff7a4d;
+  --color-brand-subtle: rgba(252, 95, 43, 0.14);
+  --color-text-primary:   #f0f0f0;
+  --color-text-secondary: #a8a8b0;
+  --color-text-muted:     #60606a;
+  --color-risk-fin: #f59e0b;
+  --color-risk-sls: #ef4444;
+  --color-risk-dow: #8b5cf6;
+  --color-risk-kec: #06b6d4;
+  --color-risk-hck: #f97316;
+  --color-risk-gir: #10b981;
+  --color-risk-sps: #ec4899;
+  --color-risk-rer: #6366f1;
+  --color-lit:     #fc5f2b;
+  --color-partial: rgba(252, 95, 43, 0.45);
+  --color-dim:     #2a2a2e;
+  --shadow-panel: 4px 0 0 0 rgba(255,255,255,0.12);
+}
+
+/* Explicit light — overrides OS dark preference */
+html[data-theme="light"] {
+  --color-surface-base:    #ffffff;
+  --color-surface-raised:  #fafafa;
+  --color-surface-overlay: #f4f4f4;
+  --color-border:          #000000;
+  --color-border-subtle:   #e0e0e0;
+  --color-brand:        #fc5f2b;
+  --color-brand-hover:  #e04e1e;
+  --color-brand-subtle: rgba(252, 95, 43, 0.09);
+  --color-text-primary:   #000000;
+  --color-text-secondary: #555555;
+  --color-text-muted:     #999999;
+  --color-risk-fin: #d97706;
+  --color-risk-sls: #dc2626;
+  --color-risk-dow: #7c3aed;
+  --color-risk-kec: #0891b2;
+  --color-risk-hck: #ea580c;
+  --color-risk-gir: #059669;
+  --color-risk-sps: #db2777;
+  --color-risk-rer: #4f46e5;
+  --color-lit:     #fc5f2b;
+  --color-partial: rgba(252, 95, 43, 0.45);
+  --color-dim:     #e8e8e8;
+  --shadow-panel: 4px 0 0 0 #000;
+}
+
+/* ── Base reset ──────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-surface-base);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100dvh;
+  }
+
+  #app {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  a {
+    color: var(--color-brand);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--color-brand-hover);
+    text-decoration: underline;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+}
+
+/* ── Utility layer ───────────────────────────────────────────────── */
+@layer utilities {
+  .surface-base     { background-color: var(--color-surface-base); }
+  .surface-raised   { background-color: var(--color-surface-raised); }
+  .surface-overlay  { background-color: var(--color-surface-overlay); }
+  .border-subtle    { border-color: var(--color-border); }
+  .text-primary     { color: var(--color-text-primary); }
+  .text-secondary   { color: var(--color-text-secondary); }
+  .text-muted       { color: var(--color-text-muted); }
+  .text-brand       { color: var(--color-brand); }
+  .bg-brand-subtle  { background-color: var(--color-brand-subtle); }
+  .font-mono        { font-family: var(--font-family-mono); }
+}
