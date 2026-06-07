@@ -129,7 +129,7 @@ import { RouterLink } from 'vue-router'
 }
 
 .hero-inner {
-  max-width: 720px;
+  max-width: 960px;
   width: 100%;
   text-align: center;
 }
@@ -167,7 +167,7 @@ import { RouterLink } from 'vue-router'
   font-size: 1.0625rem;
   line-height: 1.7;
   color: var(--color-text-secondary);
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto 2.5rem;
 }
 

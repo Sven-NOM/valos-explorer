@@ -409,7 +409,7 @@ watch(selectedCategoryId, () => { riskIndex.value = 0 })
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  max-width: 800px;
+  max-width: 1040px;
   width: 100%;
   margin: 0 auto;
   padding: 2rem 1.5rem;

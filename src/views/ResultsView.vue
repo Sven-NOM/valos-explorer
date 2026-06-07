@@ -35,7 +35,7 @@ import { CERT_URL } from '@/config'
 
 <style scoped>
 .results-page {
-  max-width: 640px;
+  max-width: 860px;
   margin: 0 auto;
   padding: 2.5rem 1.5rem 4rem;
   display: flex;

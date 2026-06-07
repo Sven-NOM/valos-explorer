@@ -191,7 +191,7 @@ function handleContinue() {
 
 .profile-container {
   width: 100%;
-  max-width: 720px;
+  max-width: 960px;
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
