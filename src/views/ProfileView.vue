@@ -15,7 +15,7 @@
               :key="opt.value"
               class="option-btn"
               :class="{ selected: assessment.profile.orgType === opt.value, 'option-btn--curious': opt.value === 'curious' }"
-              @click="assessment.setProfileField('orgType', opt.value)"
+              @click="selectOrgType(opt.value)"
             >
               {{ opt.label }}
               <span v-if="opt.hint" class="option-hint">{{ opt.hint }}</span>
@@ -76,7 +76,7 @@
               :key="opt.value"
               class="option-btn"
               :class="{ selected: assessment.profile.teamSize === opt.value }"
-              @click="assessment.setProfileField('teamSize', opt.value)"
+              @click="selectTeamSize(opt.value)"
             >
               {{ opt.label }}
             </button>
@@ -174,6 +174,18 @@ const teamSizeOptions: { label: string; value: OperatorProfile['teamSize'] }[] =
   { label: '6–20 people', value: '6-20' },
   { label: 'Over 20', value: 'over-20' },
 ]
+
+function selectOrgType(value: OperatorProfile['orgType']) {
+  assessment.setProfileField('orgType', value)
+  // Clear teamSize so orgType drives the scale band
+  assessment.setProfileField('teamSize', undefined)
+}
+
+function selectTeamSize(value: OperatorProfile['teamSize']) {
+  assessment.setProfileField('teamSize', value)
+  // Clear orgType so teamSize drives the scale band
+  assessment.setProfileField('orgType', undefined)
+}
 
 function handleContinue() {
   router.push('/discovery')
