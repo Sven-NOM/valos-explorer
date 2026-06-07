@@ -9,11 +9,10 @@ import { PROVENANCE } from '@/data/implementationScope'
 
 const router = useRouter()
 const assessment = useAssessmentStore()
-const { scaleBand, scaleLabel } = useScale()
+const { scaleBand, scaleLabel, isControlInBand } = useScale()
 const { scopes, totalControls, totalImplemented } = useImplementation()
 
 // ── View filters (display only; do not change the underlying counts) ──────────
-const hideAboveScale = ref(false)
 const onlyOutstanding = ref(false)
 
 // Load expanded scopes from localStorage, default to all collapsed
@@ -33,21 +32,27 @@ watch(
 
 const hasScale = computed(() => scaleBand.value !== null)
 
+function isEntryInScale(e: ControlEntry): boolean {
+  // Use both: the risk-linkage-based inScale AND the explicit minBandForControl record
+  return e.inScale && isControlInBand(e.control.id)
+}
+
 function passesFilter(e: ControlEntry): boolean {
-  if (hideAboveScale.value && !e.inScale) return false
+  // Always hide out-of-scale controls when a profile is set
+  if (hasScale.value && !isEntryInScale(e)) return false
   if (onlyOutstanding.value && e.coverage !== 'outstanding') return false
   return true
 }
 
 const visibleScopes = computed(() =>
-  scopes.value
-    .map((s) => ({
-      ...s,
-      groups: s.groups
-        .map((g) => ({ ...g, controls: g.controls.filter(passesFilter) }))
-        .filter((g) => g.controls.length > 0),
-    }))
-    .filter((s) => s.groups.length > 0)
+  scopes.value.map((s) => {
+    const allControls = s.groups.flatMap(g => g.controls)
+    const hiddenControls = hasScale.value ? allControls.filter(e => !isEntryInScale(e)) : []
+    const visibleGroups = s.groups
+      .map((g) => ({ ...g, controls: g.controls.filter(passesFilter) }))
+      .filter((g) => g.controls.length > 0)
+    return { ...s, groups: visibleGroups, hiddenCount: hiddenControls.length }
+  })
 )
 
 const progressPct = computed(() =>
@@ -146,15 +151,11 @@ function jumpToOutstandingRisk(entry: ControlEntry) {
 
       <div class="filter-bar">
         <div class="filter-controls">
-          <label v-if="hasScale" class="filter-toggle">
-            <input type="checkbox" v-model="hideAboveScale" />
-            Hide controls above my scale
-            <span class="scale-note">({{ scaleLabel }})</span>
-          </label>
           <label class="filter-toggle">
             <input type="checkbox" v-model="onlyOutstanding" />
             Only show outstanding
           </label>
+          <span v-if="hasScale" class="scale-note">Showing controls for {{ scaleLabel }}</span>
         </div>
 
         <div class="expand-buttons">
@@ -178,6 +179,36 @@ function jumpToOutstandingRisk(entry: ControlEntry) {
       <p v-else-if="visibleScopes.length === 0" class="empty-all">
         Nothing matches the current filters.
       </p>
+
+      <!-- Organizational heat map -->
+      <div v-if="scopes.length > 0" class="heat-map">
+        <h3 class="heat-map-title">Organizational overview</h3>
+        <div class="heat-map-rows">
+          <div
+            v-for="scope in scopes"
+            :key="scope.domainId"
+            class="heat-map-row"
+          >
+            <div class="heat-map-meta">
+              <span class="heat-map-label">{{ scope.label }}</span>
+              <span class="heat-map-owner">{{ scope.owner }}</span>
+            </div>
+            <div class="heat-map-bar-wrap">
+              <div class="heat-map-bar-track">
+                <div
+                  class="heat-map-bar-fill"
+                  :class="{
+                    'heat-map-bar-fill--complete': scope.counts.implemented === scope.counts.total && scope.counts.total > 0,
+                    'heat-map-bar-fill--zero': scope.counts.total === 0,
+                  }"
+                  :style="{ width: scope.counts.total > 0 ? Math.round((scope.counts.implemented / scope.counts.total) * 100) + '%' : '0%' }"
+                />
+              </div>
+              <span class="heat-map-count">{{ scope.counts.implemented }}/{{ scope.counts.total }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <details
         v-for="scope in visibleScopes"
@@ -209,6 +240,11 @@ function jumpToOutstandingRisk(entry: ControlEntry) {
 
         <p class="scope-blurb">{{ scope.blurb }}</p>
 
+        <div v-if="scope.hiddenCount > 0" class="scope-hidden-note">
+          <span>{{ scope.hiddenCount }} {{ scope.hiddenCount === 1 ? 'control' : 'controls' }} not applicable at your current scale.</span>
+          <span v-if="scope.hiddenExplanation" class="scope-hidden-explain"> {{ scope.hiddenExplanation }}</span>
+        </div>
+
         <div class="groups">
           <div v-for="group in scope.groups" :key="group.groupId" class="group">
             <h4 class="group-heading">{{ group.groupId }}</h4>
@@ -220,7 +256,7 @@ function jumpToOutstandingRisk(entry: ControlEntry) {
                 class="control-item"
                 :class="[
                   entry.modal === 'MUST' ? 'control-item--must' : 'control-item--should',
-                  { 'control-item--done': entry.implemented, 'control-item--above': !entry.inScale },
+                  { 'control-item--done': entry.implemented },
                 ]"
               >
                 <div class="control-main">
@@ -241,9 +277,8 @@ function jumpToOutstandingRisk(entry: ControlEntry) {
 
                   <span class="control-statement">{{ stripPrefix(entry.control.title) }}</span>
 
-                  <span v-if="!entry.inScale" class="tag tag--above">above your scale</span>
                   <span
-                    v-else-if="entry.coverage === 'addressed'"
+                    v-if="entry.coverage === 'addressed'"
                     class="tag tag--addressed"
                   >✓ addressed</span>
                   <button
@@ -748,5 +783,114 @@ function jumpToOutstandingRisk(entry: ControlEntry) {
   padding: 0.2em 0.55em;
   border-radius: var(--radius-sm);
   line-height: 1.5;
+}
+
+/* ── Organizational heat map ─────────────────────────────────── */
+.heat-map {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.heat-map-title {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.heat-map-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.heat-map-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.heat-map-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 11rem;
+  flex-shrink: 0;
+}
+
+.heat-map-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+.heat-map-owner {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  line-height: 1.3;
+}
+
+.heat-map-bar-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.heat-map-bar-track {
+  flex: 1;
+  height: 4px;
+  background: var(--color-surface-overlay);
+  border: 1px solid var(--color-border-subtle);
+  overflow: hidden;
+}
+
+.heat-map-bar-fill {
+  height: 100%;
+  background: var(--color-brand);
+  transition: width 0.3s ease;
+}
+
+.heat-map-bar-fill--complete {
+  background: #15a34a;
+}
+
+.heat-map-bar-fill--zero {
+  background: transparent;
+}
+
+.heat-map-count {
+  font-family: var(--font-family-mono);
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  min-width: 3rem;
+  text-align: right;
+}
+
+/* ── Scope hidden note ───────────────────────────────────────── */
+.scope-hidden-note {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  background: var(--color-surface-base);
+  border-top: 1px solid var(--color-border-subtle);
+  font-style: italic;
+}
+
+.scope-hidden-explain {
+  opacity: 0.8;
+}
+
+.scale-note {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 </style>

@@ -25,6 +25,8 @@ export interface ScopeMeta {
   owner: string
   /** One-line description of what lives here. */
   blurb: string
+  /** Explanation shown when controls are hidden due to scale. */
+  hiddenExplanation?: string
 }
 
 /**
@@ -44,6 +46,7 @@ export const SCOPE_ORDER: ScopeMeta[] = [
     label: 'People & HR',
     owner: 'HR / People ops',
     blurb: 'Knowing who is authorized, training them, and managing vendor and partner dependencies.',
+    hiddenExplanation: 'These controls require having a team with distinct roles. They become relevant once you have more than one operator.',
   },
   {
     domainId: 'sec-controls-fin-reg',

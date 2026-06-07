@@ -54,7 +54,7 @@ const blindSpotCount = computed(() => blindSpots.value.length)
   <div class="blind-spots-view">
     <div class="page-inner">
       <header class="page-header">
-        <h1 class="page-title">Blind Spots</h1>
+        <h1 class="page-title">Risk Explorer</h1>
         <p class="page-subtitle">
           Risks you haven't assessed yet, sorted by leverage — the more mitigations a risk links
           to, the more impactful it is to address.

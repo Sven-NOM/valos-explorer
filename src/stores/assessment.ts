@@ -3,7 +3,7 @@ import { defineStore } from 'pinia';
 import type { AnswerLevel } from '@/types/valos';
 
 export interface OperatorProfile {
-  orgType?: 'solo' | 'small-team' | 'organization' | 'enterprise';
+  orgType?: 'curious' | 'solo' | 'small-team' | 'organization' | 'enterprise';
   validatorCount?: 'under-10' | '10-100' | '100-1000' | 'over-1000';
   infra?: 'cloud' | 'bare-metal' | 'hybrid' | 'managed';
   keyMgmt?: 'hot-wallet' | 'hardware-wallet' | 'hsm' | 'mpc';

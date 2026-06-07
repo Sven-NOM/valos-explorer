@@ -14,7 +14,7 @@ import RiskControls from '@/components/risk/RiskControls.vue'
 const route = useRoute()
 const content = useContentStore()
 const assessment = useAssessmentStore()
-const { suggestedNaRiskIds } = useScale()
+const { scaleBand, isRiskInBand, suggestedNaRiskIds, isCuriousMode, previewRiskIds } = useScale()
 
 const CATEGORY_COLORS: Record<CategoryId, string> = {
   fin: 'var(--color-risk-fin)',
@@ -33,8 +33,19 @@ const CATEGORY_ORDER: CategoryId[] = ['fin', 'sls', 'dow', 'kec', 'hck', 'gir', 
 const selectedCategoryId = ref<CategoryId>(content.categories[0]?.id ?? 'fin')
 const riskIndex = ref(0)
 
-const categoryRisks = computed(() =>
+const allCategoryRisks = computed(() =>
   content.risksByCategory(selectedCategoryId.value)
+)
+
+// When a profile is set, hide out-of-scale risks. In curious mode, show only preview risks.
+const categoryRisks = computed(() => {
+  if (isCuriousMode.value) return allCategoryRisks.value.filter(r => previewRiskIds.value.has(r.id))
+  if (scaleBand.value === null) return allCategoryRisks.value
+  return allCategoryRisks.value.filter(r => isRiskInBand(r.displayId))
+})
+
+const hiddenInCategory = computed(() =>
+  allCategoryRisks.value.length - categoryRisks.value.length
 )
 
 const currentRisk = computed(() => categoryRisks.value[riskIndex.value] ?? null)
@@ -141,12 +152,20 @@ watch(
   { immediate: true }
 )
 
-function answeredInCategory(categoryId: CategoryId): number {
+function inScaleRisksForCategory(categoryId: CategoryId) {
   const risks = content.risksByCategory(categoryId)
-  return risks.filter(
-    (r) =>
-      assessment.naRisks.has(r.id) || (assessment.answers[r.id] ?? 'none') !== 'none'
+  if (scaleBand.value === null) return risks
+  return risks.filter(r => isRiskInBand(r.displayId))
+}
+
+function answeredInCategory(categoryId: CategoryId): number {
+  return inScaleRisksForCategory(categoryId).filter(
+    (r) => assessment.naRisks.has(r.id) || (assessment.answers[r.id] ?? 'none') !== 'none'
   ).length
+}
+
+function totalInCategory(categoryId: CategoryId): number {
+  return inScaleRisksForCategory(categoryId).length
 }
 
 function handleMarkNa() {
@@ -177,14 +196,22 @@ watch(selectedCategoryId, () => { riskIndex.value = 0 })
         <span
           class="cat-progress"
           :class="{
-            'cat-progress--complete': answeredInCategory(cat.id as CategoryId) === content.risksByCategory(cat.id as CategoryId).length,
-            'cat-progress--incomplete': answeredInCategory(cat.id as CategoryId) < content.risksByCategory(cat.id as CategoryId).length
+            'cat-progress--complete': answeredInCategory(cat.id as CategoryId) === totalInCategory(cat.id as CategoryId),
+            'cat-progress--incomplete': answeredInCategory(cat.id as CategoryId) < totalInCategory(cat.id as CategoryId)
           }"
         >
-          {{ answeredInCategory(cat.id as CategoryId) }}/{{ content.risksByCategory(cat.id as CategoryId).length }}
+          {{ answeredInCategory(cat.id as CategoryId) }}/{{ totalInCategory(cat.id as CategoryId) }}
         </span>
       </button>
     </nav>
+
+    <!-- Curious/Preview mode banner -->
+    <div v-if="isCuriousMode" class="preview-banner">
+      <span class="preview-banner-text">
+        You're in preview mode — showing {{ previewRiskIds.size }} representative risks.
+      </span>
+      <router-link to="/profile" class="preview-banner-link">Set a profile to see your full risk landscape →</router-link>
+    </div>
 
     <!-- Main content -->
     <div class="discovery-main">
@@ -284,8 +311,24 @@ watch(selectedCategoryId, () => { riskIndex.value = 0 })
 
       </template>
 
-      <div v-else class="empty-state">
-        <p>No risks in this category.</p>
+      <!-- Hidden content disclosure -->
+      <div v-if="hiddenInCategory > 0 && (riskIndex === categoryRisks.length - 1 || categoryRisks.length === 0)" class="hidden-disclosure">
+        <span class="hidden-disclosure-icon">○</span>
+        <span class="hidden-disclosure-text">
+          {{ hiddenInCategory }} {{ hiddenInCategory === 1 ? 'risk' : 'risks' }} in this category
+          {{ hiddenInCategory === 1 ? 'is' : 'are' }} not applicable at your current scale.
+          These become relevant as your operation grows.
+        </span>
+      </div>
+
+      <div v-else-if="categoryRisks.length === 0" class="empty-state">
+        <p>No risks applicable at your current scale in this category.</p>
+        <div v-if="hiddenInCategory > 0" class="hidden-disclosure">
+          <span class="hidden-disclosure-icon">○</span>
+          <span class="hidden-disclosure-text">
+            {{ hiddenInCategory }} {{ hiddenInCategory === 1 ? 'risk' : 'risks' }} hidden — not applicable at your scale.
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -563,4 +606,49 @@ watch(selectedCategoryId, () => { riskIndex.value = 0 })
 
 .fade-slide-enter-active { transition: opacity 0.25s ease, transform 0.25s ease; }
 .fade-slide-enter-from { opacity: 0; transform: translateY(-6px); }
+
+.preview-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 1.5rem;
+  background: var(--color-brand-subtle);
+  border-bottom: 1px solid var(--color-brand);
+  flex-wrap: wrap;
+}
+
+.preview-banner-text {
+  font-size: 0.8125rem;
+  color: var(--color-brand);
+  font-weight: 500;
+}
+
+.preview-banner-link {
+  font-size: 0.8125rem;
+  color: var(--color-brand);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.preview-banner-link:hover { text-decoration: underline; }
+
+.hidden-disclosure {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-left: 3px solid var(--color-border);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.hidden-disclosure-icon {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  margin-top: 0.1rem;
+  opacity: 0.5;
+}
 </style>

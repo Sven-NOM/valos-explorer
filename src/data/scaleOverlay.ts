@@ -14,7 +14,7 @@
 
 import type { ScaleBand } from '@/types/valos'
 
-export const OVERLAY_VERSION = 1
+export const OVERLAY_VERSION = 2
 
 export const PROVENANCE =
   'Scale guidance is an editorial overlay by ValOS Explorer, not part of the ValOS spec.'
@@ -56,4 +56,15 @@ export const minBandForMitigation: Record<string, ScaleBand> = {
   // ── Band 3: Institutional / enterprise practices ──────────────────────────
   'sec-mit-containerized-environments': 3, // Orchestrated infra at enterprise scale
   'sec-mit-process-automation': 3,         // Formal process automation programs
+}
+
+/**
+ * Minimum scale band per control (keyed by control id, e.g. 'req-identify-staff').
+ * Default for any unlisted control is 0 (applies to all operators).
+ */
+export const minBandForControl: Record<string, ScaleBand> = {
+  // ── Band 1: Requires having a team / employees ─────────────────────────────
+  'req-identify-staff': 1,         // Staff identification needs > 1 person
+  'req-train-staff': 1,            // Staff training needs > 1 person
+  'req-manage-counterparty-risk': 1, // Counterparty risk management implies relationships
 }

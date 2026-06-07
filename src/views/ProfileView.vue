@@ -14,10 +14,11 @@
               v-for="opt in orgTypeOptions"
               :key="opt.value"
               class="option-btn"
-              :class="{ selected: assessment.profile.orgType === opt.value }"
+              :class="{ selected: assessment.profile.orgType === opt.value, 'option-btn--curious': opt.value === 'curious' }"
               @click="assessment.setProfileField('orgType', opt.value)"
             >
               {{ opt.label }}
+              <span v-if="opt.hint" class="option-hint">{{ opt.hint }}</span>
             </button>
           </div>
         </section>
@@ -83,6 +84,27 @@
         </section>
       </div>
 
+      <div v-if="scaleBand !== null" class="scope-indicator">
+        <h2 class="scope-indicator-title">Your framework scope</h2>
+        <div class="scope-counts">
+          <div class="scope-count-row">
+            <span class="scope-count-num">{{ relevantRisks }}</span>
+            <span class="scope-count-label">of {{ totalRisks }} risks relevant to your scale</span>
+          </div>
+          <div class="scope-count-row">
+            <span class="scope-count-num">{{ relevantMitigations }}</span>
+            <span class="scope-count-label">of {{ totalMitigations }} mitigations relevant to your scale</span>
+          </div>
+          <div class="scope-count-row">
+            <span class="scope-count-num">{{ relevantControls }}</span>
+            <span class="scope-count-label">of {{ totalControls }} controls relevant to your scale</span>
+          </div>
+        </div>
+        <p v-if="hiddenCount > 0" class="scope-hidden-note">
+          {{ hiddenCount }} items are hidden because they require a larger operational scale. They become visible as your operation grows.
+        </p>
+      </div>
+
       <div class="profile-footer">
         <button class="continue-btn" @click="handleContinue">Continue</button>
       </div>
@@ -91,14 +113,34 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAssessmentStore } from '@/stores/assessment'
+import { useContentStore } from '@/stores/content'
+import { useScale } from '@/composables/useScale'
 import type { OperatorProfile } from '@/stores/assessment'
 
 const router = useRouter()
 const assessment = useAssessmentStore()
+const content = useContentStore()
+const { scaleBand, isRiskInBand, isMitigationInBand, isControlInBand } = useScale()
 
-const orgTypeOptions: { label: string; value: OperatorProfile['orgType'] }[] = [
+const totalRisks = computed(() => content.risks.length)
+const totalMitigations = computed(() => content.mitigations.length)
+const totalControls = computed(() => content.controls.length)
+
+const relevantRisks = computed(() => content.risks.filter(r => isRiskInBand(r.displayId)).length)
+const relevantMitigations = computed(() => content.mitigations.filter(m => isMitigationInBand(m.id)).length)
+const relevantControls = computed(() => content.controls.filter(c => isControlInBand(c.id)).length)
+
+const hiddenCount = computed(() =>
+  (totalRisks.value - relevantRisks.value) +
+  (totalMitigations.value - relevantMitigations.value) +
+  (totalControls.value - relevantControls.value)
+)
+
+const orgTypeOptions: { label: string; value: OperatorProfile['orgType']; hint?: string }[] = [
+  { label: 'Curious / Preview', value: 'curious', hint: 'Not an assessment — just exploring' },
   { label: 'Solo operator', value: 'solo' },
   { label: 'Small team', value: 'small-team' },
   { label: 'Organization', value: 'organization' },
@@ -231,6 +273,20 @@ function handleContinue() {
   color: var(--color-brand);
 }
 
+.option-btn--curious {
+  border-style: dashed;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+}
+
+.option-hint {
+  font-size: 0.6875rem;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
 .profile-footer {
   display: flex;
   justify-content: flex-end;
@@ -252,5 +308,57 @@ function handleContinue() {
 
 .continue-btn:hover {
   background-color: var(--color-brand-hover);
+}
+
+.scope-indicator {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.scope-indicator-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.scope-counts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scope-count-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.scope-count-num {
+  font-family: var(--font-family-mono);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-brand);
+  min-width: 2.5rem;
+}
+
+.scope-count-label {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.scope-hidden-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 0.75rem;
 }
 </style>

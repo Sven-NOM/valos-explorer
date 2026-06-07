@@ -2,7 +2,8 @@ import { computed } from 'vue'
 import type { ScaleBand } from '@/types/valos'
 import { useAssessmentStore } from '@/stores/assessment'
 import { useContentStore } from '@/stores/content'
-import { minBandForRisk, minBandForMitigation } from '@/data/scaleOverlay'
+import { minBandForRisk, minBandForMitigation, minBandForControl } from '@/data/scaleOverlay'
+import { PREVIEW_RISK_IDS } from '@/data/previewRisks'
 
 const SCALE_LABELS: Record<ScaleBand, string> = {
   0: 'Solo operator',
@@ -20,6 +21,9 @@ export function useScale() {
   // Empty profile → null (entire feature is a no-op).
   const scaleBand = computed<ScaleBand | null>(() => {
     const { teamSize, orgType, validatorCount } = assessment.profile
+
+    // Curious mode: no scale filtering, but preview mode is active
+    if (orgType === 'curious') return null
 
     let band: ScaleBand | null = null
 
@@ -61,6 +65,18 @@ export function useScale() {
     return band >= minBand
   }
 
+  function isMitigationInBand(mitigationId: string): boolean {
+    const band = scaleBand.value
+    if (band === null) return true
+    return band >= (minBandForMitigation[mitigationId] ?? 0)
+  }
+
+  function isControlInBand(controlId: string): boolean {
+    const band = scaleBand.value
+    if (band === null) return true
+    return band >= (minBandForControl[controlId] ?? 0)
+  }
+
   // Risk IDs (not displayIds) that are out of scale band and not yet confirmed N/A.
   const suggestedNaRiskIds = computed<string[]>(() => {
     const band = scaleBand.value
@@ -84,11 +100,26 @@ export function useScale() {
     )
   })
 
+  const isCuriousMode = computed(() => assessment.profile.orgType === 'curious')
+  const previewRiskIds = computed<Set<string>>(() => {
+    if (!isCuriousMode.value) return new Set()
+    const set = new Set<string>()
+    for (const displayId of PREVIEW_RISK_IDS) {
+      const risk = content.risks.find(r => r.displayId === displayId)
+      if (risk) set.add(risk.id)
+    }
+    return set
+  })
+
   return {
     scaleBand,
     scaleLabel,
     isRiskInBand,
+    isMitigationInBand,
+    isControlInBand,
     suggestedNaRiskIds,
     nextRungMitigations,
+    isCuriousMode,
+    previewRiskIds,
   }
 }

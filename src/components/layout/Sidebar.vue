@@ -5,12 +5,16 @@ import { useTheme } from '@/composables/useTheme'
 const route = useRoute()
 const { theme, toggle } = useTheme()
 
-const navItems = [
+const primaryNav = [
   { name: 'Welcome', to: '/welcome', icon: '⬡' },
   { name: 'Profile', to: '/profile', icon: '◈' },
   { name: 'Risks', to: '/discovery', icon: '⬡' },
-  { name: 'Blind Spots', to: '/blind-spots', icon: '◉' },
+  { name: 'Graph', to: '/graph', icon: '◎' },
+  { name: 'Risk Explorer', to: '/blind-spots', icon: '◉' },
   { name: 'Results', to: '/results', icon: '◇' },
+]
+
+const advancedNav = [
   { name: 'Compliance', to: '/compliance', icon: '⊞' },
   { name: 'Implementation', to: '/implementation', icon: '⚙' },
 ]
@@ -28,7 +32,24 @@ function isActive(to: string) {
     </div>
 
     <ul class="nav-list">
-      <li v-for="item in navItems" :key="item.to">
+      <li v-for="item in primaryNav" :key="item.to">
+        <router-link
+          :to="item.to"
+          class="nav-item"
+          :class="{ active: isActive(item.to) }"
+        >
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span class="nav-label">{{ item.name }}</span>
+        </router-link>
+      </li>
+    </ul>
+
+    <div class="nav-divider">
+      <span class="nav-divider-label">Advanced</span>
+    </div>
+
+    <ul class="nav-list">
+      <li v-for="item in advancedNav" :key="item.to">
         <router-link
           :to="item.to"
           class="nav-item"
@@ -173,6 +194,37 @@ function isActive(to: string) {
 
 .nav-label {
   font-weight: 500;
+}
+
+.nav-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem 0.375rem;
+  margin-top: 0.25rem;
+}
+
+.nav-divider::before {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-subtle);
+}
+
+.nav-divider-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.nav-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-subtle);
 }
 
 .sidebar-footer {
