@@ -5,6 +5,7 @@ import { useAssessmentStore } from '@/stores/assessment'
 import type { CategoryId } from '@/types/valos'
 
 const ORG_TYPE_LABELS: Record<string, string> = {
+  'curious': 'Exploring',
   'solo': 'Solo operator',
   'small-team': 'Small team',
   'organization': 'Organization',
@@ -47,11 +48,8 @@ export function useShareCard(cardRef: Ref<HTMLElement | null>) {
   }
 
   function shareOnX() {
-    const parts: string[] = ['I assessed my Ethereum validator risk posture with @ValOS.']
-    parts.push(`Maturity: ${maturity.value}.`)
-    if (riskCoveragePct.value > 0) {
-      parts.push(`${riskCoveragePct.value}% of risks assessed.`)
-    }
+    const parts: string[] = ['I assessed my Ethereum validator risk posture with ValOS Explorer.']
+    parts.push(`Operational posture: ${maturity.value}.`)
     const appUrl = 'https://lidofinance.github.io/valos-explorer/'
     const intent =
       'https://twitter.com/intent/tweet' +

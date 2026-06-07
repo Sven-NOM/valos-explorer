@@ -46,23 +46,18 @@ async function handleDownload() {
 
       <div class="card-maturity">
         <span class="maturity-word">{{ maturity }}</span>
-        <span class="maturity-label">Maturity</span>
+        <span class="maturity-label">Operational Posture</span>
       </div>
 
-      <div class="card-stats">
+      <div v-if="orgTypeLabel" class="card-stats">
         <div class="stat-item">
-          <span class="stat-value">{{ riskCoveragePct }}%</span>
-          <span class="stat-label">Risk breadth</span>
+          <span class="stat-value">{{ orgTypeLabel }}</span>
+          <span class="stat-label">Operator type</span>
         </div>
         <div class="stat-divider" />
         <div class="stat-item">
-          <span class="stat-value">{{ mitigationCoveragePct }}%</span>
-          <span class="stat-label">Mitigation depth</span>
-        </div>
-        <div v-if="orgTypeLabel" class="stat-divider" />
-        <div v-if="orgTypeLabel" class="stat-item">
-          <span class="stat-value">{{ orgTypeLabel }}</span>
-          <span class="stat-label">Operator type</span>
+          <span class="stat-value">{{ categoriesExplored.length }} / 8</span>
+          <span class="stat-label">Categories assessed</span>
         </div>
       </div>
 
