@@ -14,7 +14,7 @@
               v-for="opt in orgTypeOptions"
               :key="opt.value"
               class="option-btn"
-              :class="{ selected: assessment.profile.orgType === opt.value, 'option-btn--curious': opt.value === 'curious' }"
+              :class="{ selected: assessment.profile.orgType === opt.value, 'option-btn--curious': opt.value === 'curious', 'option-btn--with-hint': !!opt.hint }"
               @click="selectOrgType(opt.value)"
             >
               {{ opt.label }}
@@ -68,20 +68,7 @@
           </div>
         </section>
 
-        <section class="question-section">
-          <h2 class="question-label">Team Size</h2>
-          <div class="option-grid">
-            <button
-              v-for="opt in teamSizeOptions"
-              :key="opt.value"
-              class="option-btn"
-              :class="{ selected: assessment.profile.teamSize === opt.value }"
-              @click="selectTeamSize(opt.value)"
-            >
-              {{ opt.label }}
-            </button>
-          </div>
-        </section>
+
       </div>
 
       <div v-if="scaleBand !== null" class="scope-indicator">
@@ -141,10 +128,10 @@ const hiddenCount = computed(() =>
 
 const orgTypeOptions: { label: string; value: OperatorProfile['orgType']; hint?: string }[] = [
   { label: 'Curious / Preview', value: 'curious', hint: 'Not an assessment — just exploring' },
-  { label: 'Solo operator', value: 'solo' },
-  { label: 'Small team', value: 'small-team' },
-  { label: 'Organization', value: 'organization' },
-  { label: 'Enterprise', value: 'enterprise' },
+  { label: 'Solo operator', value: 'solo', hint: '1 person' },
+  { label: 'Small team', value: 'small-team', hint: '2–5 people' },
+  { label: 'Organization', value: 'organization', hint: '6–20 people' },
+  { label: 'Enterprise', value: 'enterprise', hint: '20+ people' },
 ]
 
 const validatorCountOptions: { label: string; value: OperatorProfile['validatorCount'] }[] = [
@@ -168,23 +155,10 @@ const keyMgmtOptions: { label: string; value: OperatorProfile['keyMgmt'] }[] = [
   { label: 'MPC', value: 'mpc' },
 ]
 
-const teamSizeOptions: { label: string; value: OperatorProfile['teamSize'] }[] = [
-  { label: 'Solo', value: 'solo' },
-  { label: '2–5 people', value: '2-5' },
-  { label: '6–20 people', value: '6-20' },
-  { label: 'Over 20', value: 'over-20' },
-]
 
 function selectOrgType(value: OperatorProfile['orgType']) {
   assessment.setProfileField('orgType', value)
-  // Clear teamSize so orgType drives the scale band
   assessment.setProfileField('teamSize', undefined)
-}
-
-function selectTeamSize(value: OperatorProfile['teamSize']) {
-  assessment.setProfileField('teamSize', value)
-  // Clear orgType so teamSize drives the scale band
-  assessment.setProfileField('orgType', undefined)
 }
 
 function handleContinue() {
@@ -287,6 +261,9 @@ function handleContinue() {
 
 .option-btn--curious {
   border-style: dashed;
+}
+
+.option-btn--with-hint {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
