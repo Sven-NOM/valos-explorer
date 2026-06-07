@@ -7,7 +7,8 @@
     "build:data": "tsx scripts/build-data.ts",
     "dev": "vite",
     "build": "npm run build:data && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gh-deploy": "npm run build && cp -r dist /tmp/valos-dist && git checkout gh-pages && git rm -rf . --quiet 2>/dev/null || true && cp -r /tmp/valos-dist/* . && git add . && git commit -m \"Deploy: update built files\" && git push origin gh-pages && git checkout main"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.0",
