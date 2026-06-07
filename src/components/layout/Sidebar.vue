@@ -9,7 +9,6 @@ const primaryNav = [
   { name: 'Welcome', to: '/welcome', icon: '⬡' },
   { name: 'Profile', to: '/profile', icon: '◈' },
   { name: 'Risks', to: '/discovery', icon: '⬡' },
-  { name: 'Graph', to: '/graph', icon: '◎' },
   { name: 'Risk Explorer', to: '/blind-spots', icon: '◉' },
   { name: 'Results', to: '/results', icon: '◇' },
 ]

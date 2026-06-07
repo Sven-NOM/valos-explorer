@@ -21,11 +21,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('./views/RiskDiscoveryView.vue'),
   },
   {
-    path: '/graph',
-    name: 'graph',
-    component: () => import('./views/GraphView.vue'),
-  },
-  {
     path: '/blind-spots',
     name: 'blindSpots',
     component: () => import('./views/BlindSpotsView.vue'),
